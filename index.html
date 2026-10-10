@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Culture Map Group Dashboard</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --ink: #151515;
+      --muted: #6f6f6f;
+      --line: #ececec;
+      --accent: #5867e8;
+      --accent-dark: #3947c7;
+      --soft: #f0f0f0;
+      --dot: #5867e8;
+      --danger: #9b2c2c;
+      --shadow: 0 18px 50px rgba(43, 36, 25, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    header {
+      padding: 32px 20px 18px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: 0;
+    }
+
+    .lede {
+      max-width: 760px;
+      margin: 12px auto 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto 48px;
+      padding: 0 16px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 12px 0 18px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 240, 0.7);
+      color: var(--ink);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .panel {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: none;
+      padding: clamp(18px, 3vw, 32px);
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .notice {
+      background: #f8f8f8;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .identity {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .question {
+      border-top: 0;
+      padding: 34px 0 88px;
+    }
+
+    .question:first-of-type {
+      border-top: 0;
+    }
+
+    .question h2 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 46px);
+      line-height: 1.02;
+      letter-spacing: -1px;
+      font-weight: 800;
+    }
+
+    .question .subtitle {
+      margin: 16px 0 42px;
+      color: #454545;
+      font-size: clamp(18px, 2.4vw, 25px);
+      font-weight: 600;
+    }
+
+    .question .statement {
+      margin: 0 0 34px;
+      font-size: clamp(18px, 2.4vw, 25px);
+      font-weight: 700;
+    }
+
+    .scale-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 210px) 1fr minmax(120px, 210px);
+      align-items: center;
+      gap: 16px;
+    }
+
+    .anchor {
+      font-size: clamp(17px, 2.2vw, 23px);
+      font-weight: 600;
+      color: #777;
+      margin-top: 44px;
+    }
+
+    .anchor.right {
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 56px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 16px;
+      border-radius: 999px;
+      background: #f0f0f0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 56px;
+      height: 56px;
+      margin-top: -20px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--accent);
+      box-shadow: none;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 16px;
+      border-radius: 999px;
+      background: #f0f0f0;
+    }
+
+    input[type="range"]::-moz-range-progress {
+      height: 16px;
+      border-radius: 999px;
+      background: #f0f0f0;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--accent);
+    }
+
+    .value-line {
+      display: flex;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+      visibility: hidden;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 18px;
+      font-weight: 800;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    button.secondary:hover {
+      background: #ddd0bb;
+    }
+
+    .status {
+      color: var(--muted);
+      min-height: 24px;
+    }
+
+    .status.error {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .dashboard-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-head h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .count {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .map {
+      display: grid;
+      gap: 18px;
+    }
+
+    .map-row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 18px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .map-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .dimension-name {
+      font-weight: 900;
+    }
+
+    .dimension-kicker {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .track-wrap {
+      min-width: 0;
+    }
+
+    .track-labels {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+
+    .track-labels span:last-child {
+      text-align: right;
+    }
+
+    .track {
+      position: relative;
+      height: 44px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(53,104,89,.10), rgba(53,104,89,.04));
+      border: 1px solid var(--line);
+    }
+
+    .midline {
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      left: 50%;
+      width: 1px;
+      background: rgba(39, 35, 28, .22);
+    }
+
+    .dot {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 2px solid #fff;
+      background: var(--dot);
+      color: #211a10;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 5px 14px rgba(0,0,0,.18);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .dot.average {
+      width: 34px;
+      height: 34px;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .map details {
+      margin-top: 6px;
+      color: var(--ink);
+    }
+
+    .map summary {
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--muted);
+      padding: 8px 0 14px;
+    }
+
+    .dimension-group {
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .dimension-group:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .dimension-group details .map-row {
+      border-top: 0;
+      padding-top: 8px;
+    }
+
+    .dimension-group details .dimension-name {
+      visibility: hidden;
+    }
+
+    .dot:focus {
+      outline: 3px solid rgba(53,104,89,.35);
+      outline-offset: 2px;
+    }
+
+    .tooltip {
+      position: fixed;
+      z-index: 20;
+      max-width: 260px;
+      background: #211d17;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.28);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -110%);
+      transition: opacity .12s ease;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px 12px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+    }
+
+    details {
+      margin-top: 24px;
+      color: var(--muted);
+    }
+
+    code {
+      background: #efe4d2;
+      padding: 2px 5px;
+      border-radius: 5px;
+    }
+
+    @media (max-width: 760px) {
+      .identity,
+      .scale-row,
+      .map-row {
+        grid-template-columns: 1fr;
+      }
+
+      .anchor.right {
+        text-align: left;
+      }
+
+      .map-row {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Culture Map Group Dashboard</h1>
+    <p class="lede">Submit your profile, then compare everyone’s communication and work preferences in one shared view.</p>
+  </header>
+
+  <main class="shell">
+    <nav class="tabs" aria-label="Dashboard tabs">
+      <button class="tab" id="submitTab" aria-selected="true" type="button">Submit Response</button>
+      <button class="tab" id="mapTab" aria-selected="false" type="button">View Group Map</button>
+    </nav>
+
+    <section class="panel active" id="submitPanel" aria-labelledby="submitTab">
+      <div class="notice">
+        Responses are intended to assist with facilitating group and personal discussions.
+      </div>
+
+      <form id="cultureForm">
+        <div class="identity">
+          <div>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required placeholder="Name">
+          </div>
+          <div>
+            <label for="initials">Initials shown on chart</label>
+            <input id="initials" name="initials" type="text" maxlength="4" required placeholder="Initials">
+          </div>
+        </div>
+
+        <div id="questions"></div>
+
+        <div class="actions">
+          <button type="submit">Submit response</button>
+          <button class="secondary" id="resetFormButton" type="button">Reset form</button>
+          <span class="status" id="formStatus" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" id="mapPanel" aria-labelledby="mapTab">
+      <div class="dashboard-head">
+        <div>
+          <h2>Group Map</h2>
+          <div class="count" id="responseCount">No responses yet</div>
+        </div>
+        <div class="actions">
+          <button class="secondary" id="refreshButton" type="button">Refresh</button>
+        </div>
+      </div>
+      <div id="map" class="map"></div>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+
+  <script>
+    // Paste your deployed Google Apps Script web app URL here.
+    // Example: const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycb.../exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxc0lTYZIY4_97Y4711qa7nvXPUqbYj0nDl4zDdQX8QiApFsOEXETF2ZmHovv7-YJO3/exec";
+
+    const DIMENSIONS = [
+      {
+        key: "communicating",
+        name: "Communicating",
+        subtitle: "Low Context vs. High Context Communication",
+        prompt: "I feel most comfortable in settings where communication is...",
+        left: "Low-context",
+        right: "High-context"
+      },
+      {
+        key: "evaluating",
+        name: "Evaluating",
+        subtitle: "Direct vs. Indirect Negative Feedback",
+        prompt: "I feel most comfortable when negative feedback is...",
+        left: "Direct",
+        right: "Indirect"
+      },
+      {
+        key: "persuading",
+        name: "Persuading",
+        subtitle: "Principles-First vs. Applications-First Reasoning",
+        prompt: "I feel most comfortable with reasoning that is...",
+        left: "Principles-First",
+        right: "Applications-First"
+      },
+      {
+        key: "leading",
+        name: "Leading",
+        subtitle: "Egalitarian vs. Hierarchical Leadership",
+        prompt: "I feel most comfortable with leadership that is...",
+        left: "Egalitarian",
+        right: "Hierarchical"
+      },
+      {
+        key: "deciding",
+        name: "Deciding",
+        subtitle: "Consensual vs. Top-Down Decision Making",
+        prompt: "I feel most comfortable with decisions that are...",
+        left: "Consensual",
+        right: "Top Down"
+      },
+      {
+        key: "trusting",
+        name: "Trusting",
+        subtitle: "Task-Based vs. Relationship-Based Trust",
+        prompt: "I feel most comfortable building trust that is...",
+        left: "Task-Based",
+        right: "Relationship-Based"
+      },
+      {
+        key: "disagreeing",
+        name: "Disagreeing",
+        subtitle: "Confrontational vs. Avoids Confrontation",
+        prompt: "I feel most comfortable when disagreements are...",
+        left: "Confrontational",
+        right: "Avoids Confrontation"
+      },
+      {
+        key: "scheduling",
+        name: "Scheduling",
+        subtitle: "Linear Time vs. Flexible Time Orientation",
+        prompt: "I feel most comfortable when scheduling is...",
+        left: "Linear",
+        right: "Flexible"
+      }
+    ];
+
+    const questionsEl = document.getElementById("questions");
+    const form = document.getElementById("cultureForm");
+    const formStatus = document.getElementById("formStatus");
+    const mapEl = document.getElementById("map");
+    const responseCount = document.getElementById("responseCount");
+    const tooltip = document.getElementById("tooltip");
+
+    function renderQuestions() {
+      questionsEl.innerHTML = DIMENSIONS.map((dimension) => `
+        <section class="question">
+          <h2>${dimension.name}</h2>
+          <div class="subtitle">${dimension.subtitle}</div>
+          <div class="statement">${dimension.prompt}</div>
+          <div class="scale-row">
+            <div class="anchor">${dimension.left}</div>
+            <div>
+              <input type="range" min="0" max="10" value="5" step="0.1" name="${dimension.key}" id="${dimension.key}" aria-label="${dimension.name}">
+              <div class="value-line">Current position: <span id="${dimension.key}-value">5.0</span> / 10</div>
+            </div>
+            <div class="anchor right">${dimension.right}</div>
+          </div>
+        </section>
+      `).join("");
+
+      DIMENSIONS.forEach((dimension) => {
+        const input = document.getElementById(dimension.key);
+        const output = document.getElementById(`${dimension.key}-value`);
+        input.addEventListener("input", () => {
+        output.textContent = Number(input.value).toFixed(1);
+        });
+      });
+    }
+
+    function setActiveTab(tabName) {
+      const isMap = tabName === "map";
+      document.getElementById("submitTab").setAttribute("aria-selected", String(!isMap));
+      document.getElementById("mapTab").setAttribute("aria-selected", String(isMap));
+      document.getElementById("submitPanel").classList.toggle("active", !isMap);
+      document.getElementById("mapPanel").classList.toggle("active", isMap);
+      if (isMap) loadAndRenderResponses();
+    }
+
+    function jsonpRequest(params) {
+      return new Promise((resolve, reject) => {
+        if (!APPS_SCRIPT_URL) {
+          reject(new Error("Missing Apps Script URL"));
+          return;
+        }
+
+        const callbackName = `cultureMapCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement("script");
+        const url = new URL(APPS_SCRIPT_URL);
+
+        Object.entries(params).forEach(([key, value]) => {
+          url.searchParams.set(key, typeof value === "object" ? JSON.stringify(value) : value);
+        });
+        url.searchParams.set("callback", callbackName);
+
+        window[callbackName] = (payload) => {
+          delete window[callbackName];
+          script.remove();
+          resolve(payload);
+        };
+
+        script.onerror = () => {
+          delete window[callbackName];
+          script.remove();
+          reject(new Error("Could not reach the Google Apps Script web app."));
+        };
+
+        script.src = url.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    async function submitResponse(response) {
+      const result = await jsonpRequest({ action: "submit", response });
+      if (!result.ok) throw new Error(result.error || "Submission failed.");
+      return result;
+    }
+
+    async function fetchResponses() {
+      const data = await jsonpRequest({ action: "list" });
+      return data.responses || [];
+    }
+
+    function normalizeName(value) {
+      return value.trim().replace(/\s+/g, " ").slice(0, 80);
+    }
+
+    function normalizeInitials(value) {
+      return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4) || "?";
+    }
+
+    function collectFormData() {
+      const formData = new FormData(form);
+      const name = normalizeName(String(formData.get("name") || ""));
+      const initials = normalizeInitials(String(formData.get("initials") || ""));
+
+      const response = {
+        timestamp: new Date().toISOString(),
+        name,
+        initials
+      };
+
+      DIMENSIONS.forEach((dimension) => {
+        response[dimension.key] = Number(formData.get(dimension.key));
+      });
+
+      return response;
+    }
+
+    function averageFor(responses, key) {
+      const values = responses.map((response) => Number(response[key])).filter((value) => Number.isFinite(value));
+      if (!values.length) return 5;
+      return values.reduce((sum, value) => sum + value, 0) / values.length;
+    }
+
+    function positionForValue(value) {
+      const bounded = Math.max(0, Math.min(10, Number(value) || 5));
+      return (bounded / 10) * 100;
+    }
+
+    function renderTrack(dimension, responses, mode) {
+      const isAverage = mode === "average";
+      const dots = isAverage
+        ? [{
+            value: averageFor(responses, dimension.key),
+            label: "",
+            title: `Group average: ${dimension.name} ${averageFor(responses, dimension.key).toFixed(1)}/10 (${dimension.left} to ${dimension.right})`,
+            color: "var(--accent)",
+            className: "dot average"
+          }]
+        : responses.map((response, index) => {
+            const value = Number(response[dimension.key] || 5);
+            const label = String(response.initials || "?").slice(0, 4);
+            return {
+              value,
+              label,
+              title: `${response.name || label}: ${dimension.name} ${value.toFixed(1)}/10 (${dimension.left} to ${dimension.right})`,
+              color: dotColor(index),
+              className: "dot"
+            };
+          });
+
+      return `
+        <section class="map-row">
+          <div class="dimension-name">${dimension.name}${isAverage ? '<span class="dimension-kicker">Group average</span>' : ""}</div>
+          <div class="track-wrap">
+            <div class="track-labels">
+              <span>${dimension.left}</span>
+              <span>${dimension.right}</span>
+            </div>
+            <div class="track" aria-label="${dimension.name} scale">
+              <div class="midline"></div>
+              ${dots.map((dot, index) => {
+                const left = positionForValue(dot.value);
+                const jitter = isAverage ? 0 : ((index % 3) - 1) * 3;
+                const top = 50 + jitter;
+                return `<button class="${dot.className}" type="button" style="left:${left}%; top:${top}%; background:${dot.color}" data-title="${escapeHtml(dot.title)}" aria-label="${escapeHtml(dot.title)}">${escapeHtml(dot.label)}</button>`;
+              }).join("")}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function dotColor(index) {
+      const colors = ["#e9b44c", "#7aa6c2", "#c86b5a", "#8ab17d", "#b084cc", "#e07a5f", "#6d9f71", "#f2cc8f"];
+      return colors[index % colors.length];
+    }
+
+    function renderMap(responses) {
+      if (!responses.length) {
+        responseCount.textContent = "No responses yet";
+        mapEl.innerHTML = `<div class="empty">No responses yet. Submit a response to start the group map.</div>`;
+        return;
+      }
+
+      responseCount.textContent = `${responses.length} response${responses.length === 1 ? "" : "s"}`;
+      mapEl.innerHTML = DIMENSIONS.map((dimension) => `
+        <div class="dimension-group">
+          ${renderTrack(dimension, responses, "average")}
+          <details>
+            <summary>Individual responses</summary>
+            ${renderTrack(dimension, responses, "individual")}
+          </details>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".dot").forEach((dot) => {
+        dot.addEventListener("mouseenter", showTooltip);
+        dot.addEventListener("mousemove", moveTooltip);
+        dot.addEventListener("mouseleave", hideTooltip);
+        dot.addEventListener("focus", showTooltip);
+        dot.addEventListener("blur", hideTooltip);
+        dot.addEventListener("click", showTooltip);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showTooltip(event) {
+      tooltip.textContent = event.currentTarget.dataset.title;
+      tooltip.classList.add("show");
+      moveTooltip(event);
+    }
+
+    function moveTooltip(event) {
+      const x = event.clientX || event.currentTarget.getBoundingClientRect().left;
+      const y = event.clientY || event.currentTarget.getBoundingClientRect().top;
+      tooltip.style.left = `${x}px`;
+      tooltip.style.top = `${y - 12}px`;
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove("show");
+    }
+
+    async function loadAndRenderResponses() {
+      responseCount.textContent = "Loading responses...";
+      try {
+        const responses = await fetchResponses();
+        renderMap(responses);
+      } catch (error) {
+        responseCount.textContent = "Could not load responses";
+        mapEl.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      formStatus.className = "status";
+      formStatus.textContent = "Submitting...";
+
+      const response = collectFormData();
+      if (!response.name || !response.initials) {
+        formStatus.className = "status error";
+        formStatus.textContent = "Please add a name and initials.";
+        return;
+      }
+
+      try {
+        await submitResponse(response);
+        formStatus.textContent = "Submitted.";
+        form.reset();
+        DIMENSIONS.forEach((dimension) => {
+          document.getElementById(dimension.key).value = 5;
+          document.getElementById(`${dimension.key}-value`).textContent = "5.0";
+        });
+        setTimeout(() => setActiveTab("map"), 400);
+      } catch (error) {
+        formStatus.className = "status error";
+        formStatus.textContent = error.message;
+      }
+    });
+
+    function resetCultureForm() {
+      form.reset();
+      DIMENSIONS.forEach((dimension) => {
+        document.getElementById(dimension.key).value = 5;
+        document.getElementById(`${dimension.key}-value`).textContent = "5.0";
+      });
+      formStatus.className = "status";
+      formStatus.textContent = "Form reset.";
+    }
+
+    document.getElementById("submitTab").addEventListener("click", () => setActiveTab("submit"));
+    document.getElementById("mapTab").addEventListener("click", () => setActiveTab("map"));
+    document.getElementById("refreshButton").addEventListener("click", loadAndRenderResponses);
+    document.getElementById("resetFormButton").addEventListener("click", resetCultureForm);
+
+    renderQuestions();
+    loadAndRenderResponses();
+  </script>
+</body>
+</html>
